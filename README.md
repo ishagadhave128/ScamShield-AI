@@ -89,8 +89,10 @@ GitHub: https://github.com/ishagadhave128
 ### 4. Dashboard
 ![Dashboard](Screenshot%202026-11-22%20181241.png)
 
-### 5. Register Page
+
+### 5. Login Page
+![Login Page](Screenshot%202026-11-22%20180931.png)
+
+### 6. Register Page
 ![Register Page](Screenshot%202026-11-22%20181113.png)
 
-### 6. Login Page
-![Login Page](Screenshot%202026-11-22%20180931.png)
