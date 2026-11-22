@@ -1,5 +1,8 @@
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+import csv
+from io import StringIO
+from flask import make_response
 import os
 import joblib
 from dotenv import load_dotenv
@@ -329,6 +332,69 @@ def delete_all_history():
         db.close()
 
     return redirect(url_for("dashboard"))
+
+# EXPORT DETECTION HISTORY AS CSV
+@app.route("/export-history")
+def export_history():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    db = get_connection()
+
+    if not db:
+        flash("Database connection failed.")
+        return redirect(url_for("dashboard"))
+
+    cursor = db.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT message, prediction, confidence, created_at
+            FROM detection_history
+            WHERE user_id = %s
+            ORDER BY id DESC
+            """,
+            (session["user_id"],)
+        )
+
+        history = cursor.fetchall()
+
+    except Exception as error:
+        print("Export Error:", error)
+        flash("Unable to export detection history.")
+        return redirect(url_for("dashboard"))
+
+    finally:
+        cursor.close()
+        db.close()
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Message",
+        "Prediction",
+        "Confidence (%)",
+        "Date & Time"
+    ])
+
+    for item in history:
+        writer.writerow([
+            item[0],
+            item[1],
+            item[2],
+            item[3]
+        ])
+
+    response = make_response("\ufeff" + output.getvalue())
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=scamshield_detection_history.csv"
+    )
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+
+    return response
+
 
 
 if __name__ == "__main__":

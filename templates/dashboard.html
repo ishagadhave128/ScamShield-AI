@@ -121,13 +121,42 @@
 <!-- RECENT DETECTION HISTORY -->
 <section class="history-section">
 
-    <div class="section-heading">
-        <div>
-            <h2>Recent Detection History</h2>
-            <p>Your latest 10 checked messages.</p>
-        </div>
-        <span class="live-indicator">● HISTORY</span>
+    
+
+<div class="section-heading">
+    <div>
+        <h2>Recent Detection History</h2>
+        <p>Your latest 10 checked messages.</p>
     </div>
+
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+
+        <span class="live-indicator">● HISTORY</span>
+
+        {% if total_scans > 0 %}
+        <a href="{{ url_for('export_history') }}"
+           class="dashboard-action">
+            ↓ Download CSV
+        </a>
+        {% endif %}
+
+        {% if total_scans > 0 %}
+        <form action="{{ url_for('delete_all_history') }}"
+              method="POST"
+              onsubmit="return confirm('Are you sure you want to delete ALL detection history?');">
+
+            <button type="submit" class="delete-btn">
+                Delete All History
+            </button>
+
+        </form>
+        {% endif %}
+
+    </div>
+</div>
+
+
+
 
     <div class="history-table-wrapper">
         <table class="history-table">
@@ -203,3 +232,8 @@
     </div>
 
 </section>
+    </main>
+</div>
+
+</body>
+</html>
