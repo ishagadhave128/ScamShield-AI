@@ -1,20 +1,20 @@
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import os
-from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, flash
 import joblib
+from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_connection
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key")
 
 model = joblib.load("scam_model.pkl")
 
 
+# HOME PAGE - SCAM DETECTION
 @app.route("/", methods=["GET", "POST"])
 def home():
     result = None
@@ -29,21 +29,41 @@ def home():
             probabilities = model.predict_proba([message])[0]
             confidence = round(max(probabilities) * 100, 2)
 
-            result = "SCAM DETECTED" if prediction == "scam" else "GENUINE MESSAGE"
+            result = (
+                "SCAM DETECTED"
+                if prediction == "scam"
+                else "GENUINE MESSAGE"
+            )
 
+            # SAVE DETECTION IN DATABASE
             if session.get("user_id"):
                 db = get_connection()
+
                 if db:
                     cursor = db.cursor()
-                    cursor.execute(
-                        """INSERT INTO detection_history
-                        (user_id, message, prediction, confidence)
-                        VALUES (%s, %s, %s, %s)""",
-                        (session["user_id"], message, prediction, confidence)
-                    )
-                    db.commit()
-                    cursor.close()
-                    db.close()
+                    try:
+                        cursor.execute(
+                            """
+                            INSERT INTO detection_history
+                            (user_id, message, prediction, confidence)
+                            VALUES (%s, %s, %s, %s)
+                            """,
+                            (
+                                session["user_id"],
+                                message,
+                                prediction,
+                                confidence
+                            )
+                        )
+                        db.commit()
+
+                    except Exception as error:
+                        db.rollback()
+                        print("Detection Save Error:", error)
+
+                    finally:
+                        cursor.close()
+                        db.close()
 
     return render_template(
         "index.html",
@@ -53,6 +73,7 @@ def home():
     )
 
 
+# REGISTER PAGE
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -69,23 +90,31 @@ def register():
             return redirect(url_for("register"))
 
         db = get_connection()
+
         if not db:
             flash("Database connection failed.")
             return redirect(url_for("register"))
 
         cursor = db.cursor()
+
         try:
             hashed_password = generate_password_hash(password)
+
             cursor.execute(
-                "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
+                """
+                INSERT INTO users (name, email, password)
+                VALUES (%s, %s, %s)
+                """,
                 (name, email, hashed_password)
             )
+
             db.commit()
             flash("Registration successful! Please login.")
             return redirect(url_for("login"))
 
-        except Exception:
+        except Exception as error:
             db.rollback()
+            print("Registration Error:", error)
             flash("This email may already be registered.")
 
         finally:
@@ -95,6 +124,7 @@ def register():
     return render_template("register.html")
 
 
+# LOGIN PAGE
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -102,18 +132,24 @@ def login():
         password = request.form.get("password", "")
 
         db = get_connection()
+
         if not db:
             flash("Database connection failed.")
             return redirect(url_for("login"))
 
         cursor = db.cursor()
-        cursor.execute(
-            "SELECT id, name, password FROM users WHERE email = %s",
-            (email,)
-        )
-        user = cursor.fetchone()
-        cursor.close()
-        db.close()
+
+        try:
+            cursor.execute(
+                "SELECT id, name, password FROM users WHERE email = %s",
+                (email,)
+            )
+
+            user = cursor.fetchone()
+
+        finally:
+            cursor.close()
+            db.close()
 
         if user and check_password_hash(user[2], password):
             session["user_id"] = user[0]
@@ -123,6 +159,7 @@ def login():
         flash("Invalid email or password.")
 
     return render_template("login.html")
+
 
 # FEATURES PAGE
 @app.route("/features")
@@ -136,11 +173,14 @@ def about():
     return render_template("about.html")
 
 
-
+# LOGOUT
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("home"))
+
+
+# USER DASHBOARD
 @app.route("/dashboard")
 def dashboard():
     if not session.get("user_id"):
@@ -154,38 +194,57 @@ def dashboard():
 
     cursor = db.cursor()
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM detection_history WHERE user_id = %s",
-        (session["user_id"],)
-    )
-    total_scans = cursor.fetchone()[0]
+    try:
+        # TOTAL SCANS
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM detection_history
+            WHERE user_id = %s
+            """,
+            (session["user_id"],)
+        )
+        total_scans = cursor.fetchone()[0]
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM detection_history WHERE user_id = %s AND prediction = 'scam'",
-        (session["user_id"],)
-    )
-    scams = cursor.fetchone()[0]
+        # TOTAL SCAMS
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM detection_history
+            WHERE user_id = %s AND prediction = 'scam'
+            """,
+            (session["user_id"],)
+        )
+        scams = cursor.fetchone()[0]
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM detection_history WHERE user_id = %s AND prediction = 'genuine'",
-        (session["user_id"],)
-    )
-    genuine = cursor.fetchone()[0]
-            # RECENT DETECTION HISTORY
-    cursor.execute(
-        """
-        SELECT id, message, prediction, confidence, created_at
-        FROM detection_history
-        WHERE user_id = %s
-        ORDER BY id DESC
-        LIMIT 10
-        """,
-        (session["user_id"],)
-    )
+        # TOTAL GENUINE MESSAGES
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM detection_history
+            WHERE user_id = %s AND prediction = 'genuine'
+            """,
+            (session["user_id"],)
+        )
+        genuine = cursor.fetchone()[0]
 
-    history = cursor.fetchall()
-    cursor.close()
-    db.close()
+        # RECENT DETECTION HISTORY
+        cursor.execute(
+            """
+            SELECT id, message, prediction, confidence, created_at
+            FROM detection_history
+            WHERE user_id = %s
+            ORDER BY id DESC
+            LIMIT 10
+            """,
+            (session["user_id"],)
+        )
+
+        history = cursor.fetchall()
+
+    finally:
+        cursor.close()
+        db.close()
 
     return render_template(
         "dashboard.html",
@@ -194,6 +253,7 @@ def dashboard():
         genuine=genuine,
         history=history
     )
+
 
 # DELETE SINGLE DETECTION
 @app.route("/delete-history/<int:history_id>", methods=["POST"])
@@ -208,16 +268,28 @@ def delete_history(history_id):
         return redirect(url_for("dashboard"))
 
     cursor = db.cursor()
-    cursor.execute(
-        "DELETE FROM detection_history WHERE id = %s AND user_id = %s",
-        (history_id, session["user_id"])
-    )
-    db.commit()
 
-    cursor.close()
-    db.close()
+    try:
+        cursor.execute(
+            """
+            DELETE FROM detection_history
+            WHERE id = %s AND user_id = %s
+            """,
+            (history_id, session["user_id"])
+        )
 
-    flash("Detection record deleted successfully!")
+        db.commit()
+        flash("Detection record deleted successfully!")
+
+    except Exception as error:
+        db.rollback()
+        print("Delete Error:", error)
+        flash("Unable to delete detection record.")
+
+    finally:
+        cursor.close()
+        db.close()
+
     return redirect(url_for("dashboard"))
 
 
@@ -234,20 +306,30 @@ def delete_all_history():
         return redirect(url_for("dashboard"))
 
     cursor = db.cursor()
-    cursor.execute(
-        "DELETE FROM detection_history WHERE user_id = %s",
-        (session["user_id"],)
-    )
-    db.commit()
 
-    cursor.close()
-    db.close()
+    try:
+        cursor.execute(
+            """
+            DELETE FROM detection_history
+            WHERE user_id = %s
+            """,
+            (session["user_id"],)
+        )
 
-    flash("All detection history deleted successfully!")
+        db.commit()
+        flash("All detection history deleted successfully!")
+
+    except Exception as error:
+        db.rollback()
+        print("Delete All Error:", error)
+        flash("Unable to delete detection history.")
+
+    finally:
+        cursor.close()
+        db.close()
+
     return redirect(url_for("dashboard"))
-
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
