@@ -74,6 +74,7 @@ The detection result is a machine-learning prediction and should not be treated 
 
 GitHub: https://github.com/ishagadhave128
 
+
 ## 📸 Project Screenshots
 
 ### 1. Home Page
@@ -85,11 +86,11 @@ GitHub: https://github.com/ishagadhave128
 ### 3. Detection Result
 ![Detection Result](Screenshot%202026-11-22%20150108.png)
 
-### 4. Login Page
-![Login Page](Screenshot%202026-11-22%20180931.png)
+### 4. Dashboard
+![Dashboard](Screenshot%202026-11-22%20181241.png)
 
 ### 5. Register Page
 ![Register Page](Screenshot%202026-11-22%20181113.png)
 
-### 6. Dashboard
-![Dashboard](Screenshot%202026-11-22%20181241.png)
+### 6. Login Page
+![Login Page](Screenshot%202026-11-22%20180931.png)
