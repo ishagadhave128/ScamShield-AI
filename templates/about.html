@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>About Us | ScamShield AI</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="about-page">
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">🛡️ ScamShield AI</div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('features') }}">Features</a>
+            <a href="{{ url_for('about') }}">About</a>
+        </div>
+
+        <div class="auth-links">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+
+    <!-- HERO SECTION -->
+    <section class="about-hero">
+
+        <span class="about-label">GET TO KNOW US</span>
+
+        <h1>Protecting Your Digital World</h1>
+
+        <p>
+            ScamShield AI is designed to help people identify suspicious
+            messages and understand potential online scams using
+            Artificial Intelligence.
+        </p>
+
+        <div class="about-hero-icon">🛡️</div>
+
+    </section>
+
+
+    <!-- OUR STORY -->
+    <section class="about-story">
+
+        <div class="story-content">
+            <span class="section-tag">OUR STORY</span>
+
+            <h2>Why ScamShield AI?</h2>
+
+            <p>
+                In today's digital world, online scams and fraudulent
+                messages are becoming increasingly common.
+                Many people receive suspicious messages but cannot
+                easily identify whether they are genuine or fraudulent.
+            </p>
+
+            <p>
+                ScamShield AI was developed to make scam awareness
+                easier by providing an AI-based message analysis
+                platform that helps users make more informed decisions.
+            </p>
+        </div>
+
+        <div class="story-visual">
+            <div class="story-shield">🔐</div>
+            <h3>Think Before You Click</h3>
+            <p>Your digital safety starts with awareness.</p>
+        </div>
+
+    </section>
+
+
+    <!-- MISSION AND VISION -->
+    <section class="about-purpose">
+
+        <div class="purpose-card">
+            <div class="purpose-icon">🎯</div>
+            <h2>Our Mission</h2>
+            <p>
+                To make people more aware of online fraud by providing
+                a simple platform that helps analyze suspicious
+                messages and recognize potential scam risks.
+            </p>
+        </div>
+
+        <div class="purpose-card">
+            <div class="purpose-icon">🌐</div>
+            <h2>Our Vision</h2>
+            <p>
+                To encourage safer digital habits and build a more
+                informed online community where people think
+                carefully before trusting unknown messages.
+            </p>
+        </div>
+
+    </section>
+
+
+    <!-- HOW IT WORKS -->
+    <section class="about-process">
+
+        <span class="section-tag">OUR PROCESS</span>
+
+        <h2>How ScamShield AI Works</h2>
+
+        <p class="process-subtitle">
+            A simple process to analyze suspicious messages.
+        </p>
+
+        <div class="process-grid">
+
+            <div class="process-card">
+                <span>01</span>
+                <div class="process-icon">💬</div>
+                <h3>Enter Message</h3>
+                <p>Enter the message you want to check.</p>
+            </div>
+
+            <div class="process-card">
+                <span>02</span>
+                <div class="process-icon">🤖</div>
+                <h3>AI Analysis</h3>
+                <p>Our trained machine learning model analyzes the text.</p>
+            </div>
+
+            <div class="process-card">
+                <span>03</span>
+                <div class="process-icon">🔍</div>
+                <h3>View Result</h3>
+                <p>Get a prediction indicating a potential scam or genuine message.</p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- TECHNOLOGY -->
+    <section class="about-tech">
+
+        <span class="section-tag">BUILT WITH TECHNOLOGY</span>
+
+        <h2>Technology Behind ScamShield AI</h2>
+
+        <p>
+            Our project combines web development, database management
+            and machine learning technologies.
+        </p>
+
+        <div class="tech-list">
+            <span>Python</span>
+            <span>Flask</span>
+            <span>Machine Learning</span>
+            <span>HTML</span>
+            <span>CSS</span>
+            <span>JavaScript</span>
+            <span>MySQL</span>
+        </div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer class="about-footer">
+        <h3>🛡️ ScamShield AI</h3>
+        <p>Stay Alert. Stay Safe. Stay Protected.</p>
+        <span>© 2026 ScamShield AI | All Rights Reserved</span>
+    </footer>
+
+</body>
+</html>

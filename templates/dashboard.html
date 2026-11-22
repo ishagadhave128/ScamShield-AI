@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ScamShield AI | Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="dashboard-page">
+
+<div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="dashboard-sidebar">
+
+        <div class="dashboard-logo">
+            <div class="dashboard-logo-icon">🛡️</div>
+            <div>
+                <h2>ScamShield <span>AI</span></h2>
+                <p>SECURITY CENTER</p>
+            </div>
+        </div>
+
+        <p class="sidebar-heading">MAIN MENU</p>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="active">
+                <span>▦</span> Dashboard
+            </a>
+
+            <a href="{{ url_for('home') }}">
+                <span>⌕</span> Check Message
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <a href="{{ url_for('home') }}">← Back to Home</a>
+            <a href="{{ url_for('logout') }}">↪ Logout</a>
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN DASHBOARD -->
+    <main class="dashboard-main">
+
+        <header class="dashboard-header">
+            <div>
+                <p class="dashboard-label">OVERVIEW</p>
+                <h1>Dashboard</h1>
+                <p class="dashboard-description">
+                    Monitor your security activity and stay protected.
+                </p>
+            </div>
+
+            <div class="dashboard-user">
+                <div class="user-avatar">
+                    {{ session.get('user_name', 'U')[0]|upper }}
+                </div>
+
+                <div>
+                    <strong>{{ session.get('user_name', 'User') }}</strong>
+                    <small>Welcome Back!</small>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- WELCOME BANNER -->
+        <section class="welcome-banner">
+            <div>
+                <span class="welcome-tag">YOUR SECURITY MATTERS</span>
+
+                <h2>Welcome back, {{ session.get('user_name', 'User') }}! 👋</h2>
+
+                <p>
+                    Stay alert. Stay protected.
+                    Let AI help you identify suspicious messages.
+                </p>
+
+                <a href="{{ url_for('home') }}" class="dashboard-action">
+                    Check a New Message →
+                </a>
+            </div>
+
+            <div class="welcome-shield">🛡️</div>
+        </section>
+
+
+        <!-- STATISTICS CARDS -->
+        <section class="stats-section">
+
+            <div class="stat-card">
+                <div class="stat-icon blue-icon">▤</div>
+                <p>Total Messages Checked</p>
+                <h2>{{ total_scans }}</h2>
+                <small>Your total detection activity</small>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon red-icon">⚠</div>
+                <p>Scams Detected</p>
+                <h2>{{ scams }}</h2>
+                <small>Suspicious messages identified</small>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green-icon">✓</div>
+                <p>Genuine Messages</p>
+                <h2>{{ genuine }}</h2>
+                <small>Messages classified as genuine</small>
+            </div>
+
+        </section>
+
+
+<!-- RECENT DETECTION HISTORY -->
+<section class="history-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Recent Detection History</h2>
+            <p>Your latest 10 checked messages.</p>
+        </div>
+        <span class="live-indicator">● HISTORY</span>
+    </div>
+
+    <div class="history-table-wrapper">
+        <table class="history-table">
+
+            <thead>
+                <tr>
+                    <th>Message</th>
+                    <th>Result</th>
+                    <th>Confidence</th>
+                    <th>Date & Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in history %}
+                <tr>
+
+                    <!-- MESSAGE -->
+                    <td class="history-message">
+                        {{ item[1] }}
+                    </td>
+
+                    <!-- RESULT -->
+                    <td>
+                        {% if item[2] == 'scam' %}
+                            <span class="history-scam">
+                                SCAM DETECTED
+                            </span>
+                        {% else %}
+                            <span class="history-genuine">
+                                GENUINE
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- CONFIDENCE -->
+                    <td>
+                        {{ "%.2f"|format(item[3]) }}%
+                    </td>
+
+                    <!-- DATE & TIME -->
+                    <td>
+                        {{ item[4].strftime('%d-%m-%Y %I:%M %p') }}
+                    </td>
+
+                    <!-- DELETE BUTTON -->
+                    <td>
+                        <form action="{{ url_for('delete_history', history_id=item[0]) }}"
+                              method="POST"
+                              onsubmit="return confirm('Are you sure you want to delete this record?');">
+
+                            <button type="submit" class="delete-btn">
+                                Delete
+                            </button>
+
+                        </form>
+                    </td>
+
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="5">
+                        No detection history available yet.
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+</section>
